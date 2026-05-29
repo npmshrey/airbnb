@@ -4,9 +4,10 @@ import { connectDB } from "./config/db.js"
 
 dotenv.config()
 let port = process.env.PORT || 8000
-let app = express()
 
-app.use(express.json)
+let app = express()
+app.use(express.json())
+app.use(cookieParser())
 
 app.use("/api/auth",authRouter)
 
