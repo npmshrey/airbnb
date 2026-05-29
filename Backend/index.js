@@ -1,6 +1,8 @@
 import express from "express"   
 import dotenv from "dotenv"
+import cookieParser from "cookie-parser"
 import { connectDB } from "./config/db.js"
+import authRouter from "./routes/auth.route.js"
 
 dotenv.config()
 let port = process.env.PORT || 8000
