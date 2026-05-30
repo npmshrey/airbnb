@@ -1,13 +1,24 @@
-import React, { createContext } from 'react'
+import React, { createContext, useState, useEffect } from 'react'
 
 export const authDataContext = createContext();
 
 function AuthContextProvider({ children }) {
+    const serverUrl = "http://localhost:8000";
+    const [user, setUser] = useState(() => {
+        try {
+            const savedUser = localStorage.getItem("user");
+            return savedUser ? JSON.parse(savedUser) : null;
+        } catch (e) {
+            return null;
+        }
+    });
 
-    let serverUrl = "http://localhost:8000";
     const value = {
-        serverUrl
+        serverUrl,
+        user,
+        setUser
     }
+
     return (
         <>
             <authDataContext.Provider value={value}>
