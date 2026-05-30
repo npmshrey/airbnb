@@ -1,13 +1,33 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { Link, useNavigate } from 'react-router-dom'
+import { authDataContext } from '../Context/Auth.context';
+import axios from 'axios';
 
 function Login() {
 
   const [show, setShow] = useState(false)
   const navigate = useNavigate()
+  const {serverUrl} = useContext(authDataContext)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")  
+
+  const handleLogin = async () => {
+      try {
+        let result = await axios.post(serverUrl + "/api/auth/login", {
+          email,
+          password
+        }, { withCredentials: true })
+        console.log(result.data)
+        alert("Login successfully")
+        navigate("/")
+      } catch (error) {
+        console.error(error)
+        alert(error.response?.data?.message || "Login failed")
+      }
+    }
 
   return (
     <div className='w-full min-h-screen flex items-center justify-center'>
@@ -21,8 +41,11 @@ function Login() {
       </div>
 
       <form
-        action=""
-        className='max-w-[900px] w-[90%] h-[600px] flex items-center justify-center text-black flex-col gap-4 md:items-start p-8'
+        className='max-w-[900px] w-[90%] h-[600px] flex items-center justify-center text-black flex-col gap-4 md:items-start p-8 bg-white rounded-xl shadow-lg'
+        onSubmit={(e)=>{
+          e.preventDefault()
+          handleLogin()
+        }}
       >
 
         <h1 className='text-[40px] text-black'>
@@ -39,7 +62,9 @@ function Login() {
           <input
             type="email"
             id="email"
-            className='w-[90%] h-[40px] border-[2px] border-[#555656] rounded-lg text-[18px] px-[20px]'
+            className='w-[90%] h-[40px] border-[2px] border-[#555656] rounded-lg text-[18px] px-[20px]' required 
+            onChange={(e)=> setEmail(e.target.value)}
+            value={email}
           />
         </div>
 
@@ -54,6 +79,9 @@ function Login() {
             type={show ? "text" : "password"}
             id="password"
             className='w-[90%] h-[40px] border-[2px] border-[#555656] rounded-lg text-[18px] px-[20px]'
+            required 
+            onChange={(e)=> setPassword(e.target.value)}
+            value={password}
           />
 
           {!show && (
