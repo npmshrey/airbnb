@@ -1,3 +1,4 @@
+import User from "../model/user.model.js"
 
 export const getCurrentUser = async (req, res) => {
     try {
