@@ -10,6 +10,7 @@ function Login() {
 
   const [show, setShow] = useState(false)
   const navigate = useNavigate()
+  const {userData, setUserData} = useContext(userDataContext)
   const { serverUrl, setUser } = useContext(authDataContext)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")  
@@ -20,14 +21,11 @@ function Login() {
           email,
           password
         }, { withCredentials: true })
-        console.log(result.data)
-        
-        // Update auth context state and localStorage
-        setUser(result.data)
-        localStorage.setItem("user", JSON.stringify(result.data))
+        setUserData(result.data) 
+        navigate("/"+result.data.role)
+        localStorage.setItem("userData", JSON.stringify(result.data))
         
         alert("Login successfully")
-        navigate("/")
       } catch (error) {
         console.error(error)
         alert(error.response?.data?.message || "Login failed")

@@ -9,6 +9,7 @@ function Signup() {
 
   const [show, setShow] = useState(false)
   const navigate = useNavigate()
+  const {userData,setUserData} = useContext(userDataContext)
   const { serverUrl } = useContext(authDataContext)
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -21,9 +22,12 @@ function Signup() {
         email,
         password
       }, { withCredentials: true })
+      setUserData(result.data)
+      localStorage.setItem("userData", JSON.stringify(result.data))
+      navigate("/"+result.data.role)
       console.log(result.data)
       alert("Account successfully created")
-      navigate("/login")
+      
     } catch (error) {
       console.error(error)
       alert(error.response?.data?.message || "Signup failed")

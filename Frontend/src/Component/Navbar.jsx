@@ -2,7 +2,6 @@ import React, { useState, useContext, useRef, useEffect } from 'react'
 
 import {
   FaAirbnb,
-  FaGlobe,
   FaUserCircle,
   FaFireAlt,
   FaSearch,
@@ -10,14 +9,7 @@ import {
   FaRegCommentDots
 } from "react-icons/fa";
 
-import {
-  HiMenu,
-  HiOutlineHome,
-  HiOutlineViewGrid,
-  HiOutlineCreditCard,
-  HiOutlineSun,
-  HiOutlineMoon
-} from "react-icons/hi";
+import { HiMenu } from "react-icons/hi";
 
 import {
   MdVilla,
@@ -43,15 +35,15 @@ import {
 } from "react-icons/bi";
 
 import axios from 'axios'
-
 import { useNavigate, useLocation } from 'react-router-dom'
-
 import { authDataContext } from '../Context/Auth.context'
+import { userDataContext } from '../Context/UserContext'
 
 function Navbar() {
-
   const navigate = useNavigate()
   const location = useLocation()
+
+  const {userData, setUserData} = useContext(userDataContext)
 
   const { serverUrl, user, setUser } = useContext(authDataContext)
 
@@ -62,23 +54,6 @@ function Navbar() {
   const popupRef = useRef(null)
   const [hoveredCategory, setHoveredCategory] = useState(null)
   const [lineStyle, setLineStyle] = useState({ left: 0, width: 0, opacity: 0 })
-
-  // Theme state
-  const [darkMode, setDarkMode] = useState(() => {
-    return document.documentElement.classList.contains('dark') || 
-           localStorage.getItem('theme') === 'dark';
-  })
-
-  // Synchronize theme
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
-  }, [darkMode])
 
   // Handle clicking outside popup
   useEffect(() => {
@@ -121,14 +96,10 @@ function Navbar() {
         {},
         { withCredentials: true }
       )
-      
-      // Clear client state
-      setUser(null)
-      localStorage.removeItem("user")
+      setUserData(null)
+      localStorage.removeItem("userData")
       setShowPopup(false)
-      
-      alert("Logout successful")
-      navigate("/login")
+      navigate("/")
     } catch (error) {
       console.error("Logout error:", error)
       setUser(null)
@@ -153,7 +124,7 @@ function Navbar() {
     },
     {
       icon: <MdOutlinePool />,
-      title: "Pool House"
+      title: "Fool House"
     },
     {
       icon: <MdOutlineBedroomParent />,
@@ -164,22 +135,18 @@ function Navbar() {
       title: "Flat"
     },
     {
+      icon: <IoBedOutline />,
+      title: "PG"
+    },
+    {
       icon: <GiWoodCabin />,
       title: "Cabins"
     },
     {
       icon: <SiHomeassistantcommunitystore />,
-      title: "Shops"
-    },
-    {
-      icon: <IoBedOutline />,
-      title: "PG"
+      title: "Shoos"
     }
   ]
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
-  }
 
   return (
     <>
@@ -193,191 +160,111 @@ function Navbar() {
         }
       `}</style>
 
-      {/* FLOATING TOP NAVBAR */}
-      <div className="w-full flex justify-center sticky top-0 z-50 px-4 md:px-0">
-        <nav className={`w-full max-w-[1200px] mt-4 rounded-full border transition-all duration-300 backdrop-blur-md px-6 py-2.5 flex items-center justify-between gap-4 ${
-          darkMode 
-            ? "border-zinc-800/80 bg-zinc-950/80 text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]" 
-            : "border-zinc-200/80 bg-white/80 text-zinc-900 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
-        }`}>
+      {/* TOP NAVBAR */}
+      <div className="w-full bg-white border-b border-zinc-200 sticky top-0 z-50">
+        <nav className="max-w-[1400px] mx-auto px-4 md:px-10 h-[80px] flex items-center justify-between gap-4">
           
           {/* LOGO */}
           <div
-            className='flex items-center gap-2 cursor-pointer flex-shrink-0'
+            className='flex items-center gap-1.5 cursor-pointer flex-shrink-0'
             onClick={() => navigate("/")}
           >
-            <FaAirbnb className='text-2xl md:text-3xl text-[#FF385C]' />
-            <h1 className='text-[18px] md:text-20px font-extrabold tracking-tight transition-colors duration-200'>
+            <FaAirbnb className='text-[32px] text-[#FF385C]' />
+            <h1 className='text-[22px] font-bold text-[#FF385C] tracking-tight'>
               airbnb
             </h1>
           </div>
 
-          {/* MIDDLE NAV LINKS - exact same structure as the screenshot */}
-          <div className='hidden md:flex items-center gap-8'>
-            <button
-              onClick={() => navigate("/")}
-              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
-                location.pathname === "/"
-                  ? (darkMode ? "text-white" : "text-zinc-950")
-                  : (darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900")
-              }`}
-            >
-              <HiOutlineHome className='text-lg' />
-              Home
-            </button>
-            <button
-              onClick={() => navigate("/")}
-              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
-                darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
-              }`}
-            >
-              <HiOutlineViewGrid className='text-lg' />
-              Plus Dashboard
-            </button>
-            <button
-              onClick={() => navigate("/")}
-              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
-                darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
-              }`}
-            >
-              <HiOutlineCreditCard className='text-lg' />
-              Pricing
-            </button>
+          {/* MIDDLE SECTION - SEARCH BAR PILL */}
+          <div 
+            className='hidden md:flex items-center border border-zinc-200 rounded-full shadow-sm hover:shadow-md transition-all duration-150 py-1.5 pl-6 pr-2 bg-white cursor-pointer w-[380px] lg:w-[420px]'
+            onClick={() => navigate("/")}
+          >
+            <span className='text-[14px] font-semibold text-zinc-800 pr-4 border-r border-zinc-200 hover:text-black transition-colors whitespace-nowrap'>
+              Any Where
+            </span>
+            <span className='text-[14px] font-semibold text-zinc-800 px-4 border-r border-zinc-200 hover:text-black transition-colors whitespace-nowrap'>
+              Any Location
+            </span>
+            <div className='pl-4 flex items-center justify-between flex-1 gap-2 min-w-0'>
+              <span className='text-[14px] text-zinc-400 font-normal hover:text-zinc-600 transition-colors truncate'>
+                Any City
+              </span>
+              <div className='w-[32px] h-[32px] rounded-full bg-[#FF385C] flex items-center justify-center text-white transition-all hover:bg-[#E61E4D] flex-shrink-0'>
+                <FaSearch className='text-[11px]' />
+              </div>
+            </div>
           </div>
 
           {/* RIGHT SIDE SECTION */}
-          <div className='flex items-center gap-3.5 flex-shrink-0 relative'>
+          <div className='flex items-center gap-4 flex-shrink-0 relative'>
             <button 
-              className={`hidden lg:block text-[13px] font-semibold transition duration-200 cursor-pointer mr-1 ${
-                darkMode ? "text-zinc-300 hover:text-white" : "text-zinc-600 hover:text-zinc-900"
-              }`}
+              className='text-[14px] font-semibold text-zinc-800 hover:bg-zinc-50 px-4 py-2.5 rounded-full transition duration-205 cursor-pointer'
               onClick={() => navigate(user ? "/" : "/login")}
             >
-              Airbnb your home
-            </button>
-
-            {/* THEME TOGGLE */}
-            <button 
-              onClick={toggleDarkMode}
-              className={`w-9 h-9 border rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                darkMode 
-                  ? "border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900/50" 
-                  : "border-zinc-200 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100/50"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {darkMode ? (
-                <HiOutlineSun className='text-lg' />
-              ) : (
-                <HiOutlineMoon className='text-lg' />
-              )}
+              List your home
             </button>
 
             {/* HAMBURGER & PROFILE PILL BUTTON */}
             <div className="relative" ref={popupRef}>
               <div
-                className={`flex items-center gap-3 border rounded-full px-3.5 py-1.5 shadow-sm cursor-pointer transition-all duration-200 ${
-                  darkMode
-                    ? "border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800/60 hover:text-white"
-                    : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900"
-                }`}
+                className='flex items-center gap-3 border border-zinc-200 rounded-full px-3.5 py-2 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 bg-white'
                 onClick={() => setShowPopup(!showPopup)}
               >
-                <HiMenu className='text-[18px]' />
+                <HiMenu className='text-[18px] text-zinc-700' />
                 {user ? (
-                  <div className='w-[24px] h-[24px] rounded-full bg-[#FF385C] text-white flex items-center justify-center font-bold text-xs capitalize shadow-sm'>
+                  <div className='w-[30px] h-[30px] rounded-full bg-[#FF385C] text-white flex items-center justify-center font-bold text-xs capitalize shadow-sm'>
                     {user.userName ? user.userName.charAt(0) : 'U'}
                   </div>
                 ) : (
-                  <FaUserCircle className='text-[24px]' />
+                  <FaUserCircle className='text-[28px] text-zinc-405' />
                 )}
               </div>
 
               {/* POPUP DROPDOWN MENU */}
               {showPopup && (
-                <div className={`absolute top-[48px] right-0 w-[240px] border backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden z-50 py-2 transition-all duration-200 ${
-                  darkMode
-                    ? "bg-zinc-950/95 border-zinc-800/80 text-zinc-300"
-                    : "bg-white/95 border-zinc-200/80 text-zinc-700"
-                }`}>
-                  <ul className='flex flex-col text-[14px]'>
+                <div className='absolute top-[56px] right-0 w-[240px] bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden z-50 py-2'>
+                  <ul className='flex flex-col text-[14px] text-zinc-800'>
                     {user ? (
                       <>
-                        <li className={`px-4 py-3 font-semibold border-b ${
-                          darkMode ? "border-zinc-900 bg-zinc-900/10 text-white" : "border-gray-100 bg-gray-50/50 text-zinc-900"
-                        }`}>
+                        <li className='px-4 py-3 font-semibold border-b border-zinc-100 bg-zinc-50 text-zinc-900'>
                           Hello, {user.userName}!
                         </li>
-                        <li className={`px-4 py-2.5 cursor-pointer font-medium ${
-                          darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                        }`} onClick={() => setShowPopup(false)}>
+                        <li className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-medium' onClick={() => setShowPopup(false)}>
                           My Listings
                         </li>
-                        <li className={`px-4 py-2.5 cursor-pointer font-medium border-b ${
-                          darkMode ? "border-zinc-900 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
-                        }`} onClick={() => setShowPopup(false)}>
+                        <li className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-medium border-b border-zinc-100' onClick={() => setShowPopup(false)}>
                           Check Bookings
                         </li>
-                        <li className={`px-4 py-2.5 cursor-pointer font-medium ${
-                          darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                        }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
-                          List your Home
+                        <li className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-medium' onClick={() => { setShowPopup(false); navigate("/"); }}>
+                          List your home
                         </li>
-                        <li className={`px-4 py-2.5 cursor-pointer font-medium text-red-500 transition-colors ${
-                          darkMode ? "hover:bg-zinc-900 hover:text-red-400" : "hover:bg-gray-50 hover:text-red-600"
-                        }`} onClick={handleLogout}>
+                        <li className='px-4 py-2.5 cursor-pointer font-medium text-red-500 hover:bg-zinc-50 transition-colors' onClick={handleLogout}>
                           Logout
                         </li>
                       </>
                     ) : (
                       <>
                         <li
-                          className={`px-4 py-2.5 cursor-pointer font-semibold border-b ${
-                            darkMode ? "border-zinc-900/50 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
-                          }`}
+                          className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-semibold'
                           onClick={() => { setShowPopup(false); navigate("/login"); }}
                         >
                           Login
                         </li>
                         <li
-                          className={`px-4 py-2.5 cursor-pointer font-medium border-b ${
-                            darkMode ? "border-zinc-900/50 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
-                          }`}
+                          className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-medium border-b border-zinc-100'
                           onClick={() => { setShowPopup(false); navigate("/signup"); }}
                         >
                           Signup
                         </li>
                         <li
-                          className={`px-4 py-2.5 cursor-pointer font-medium ${
-                            darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                          }`}
+                          className='px-4 py-2.5 hover:bg-zinc-50 cursor-pointer font-medium'
                           onClick={() => { setShowPopup(false); navigate("/login"); }}
                         >
-                          List your Home
+                          List your home
                         </li>
                       </>
                     )}
-                    {/* MOBILE LINKS IN HAMBURGER */}
-                    <div className={`md:hidden border-t mt-1 pt-1 ${darkMode ? "border-zinc-900/80" : "border-gray-100"}`}>
-                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
-                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
-                        <HiOutlineHome className="text-lg" />
-                        Home
-                      </li>
-                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
-                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
-                        <HiOutlineViewGrid className="text-lg" />
-                        Plus Dashboard
-                      </li>
-                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
-                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
-                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
-                        <HiOutlineCreditCard className="text-lg" />
-                        Pricing
-                      </li>
-                    </div>
                   </ul>
                 </div>
               )}
@@ -387,11 +274,7 @@ function Navbar() {
       </div>
 
       {/* CATEGORIES / SCROLLABLE BAR */}
-      <div className={`w-full overflow-x-auto scrollbar-hide sticky top-24 z-40 transition-all duration-300 py-3 ${
-        darkMode
-          ? "bg-zinc-950/80 border-b border-zinc-900/60 backdrop-blur-md"
-          : "bg-white/80 border-b border-gray-100/80 backdrop-blur-md"
-      }`}>
+      <div className='w-full bg-white border-b border-zinc-200 overflow-x-auto scrollbar-hide sticky top-[80px] z-40 py-3'>
         <div className='relative max-w-[1400px] mx-auto flex items-center justify-start md:justify-center gap-6 md:gap-8 px-4 md:px-6 w-full'>
           {categories.map((item, index) => {
             const isActive = activeCategory === index;
@@ -401,8 +284,8 @@ function Navbar() {
                 ref={el => itemRefs.current[index] = el}
                 className={`flex flex-col items-center justify-center gap-1.5 cursor-pointer min-w-fit transition-all duration-200 pb-2 pt-1 ${
                   isActive
-                    ? (darkMode ? "text-white font-semibold" : "text-black font-semibold")
-                    : (darkMode ? "text-zinc-500 hover:text-white" : "text-gray-500 hover:text-black")
+                    ? "text-black font-semibold"
+                    : "text-zinc-500 hover:text-black"
                 }`}
                 onMouseEnter={() => setHoveredCategory(index)}
                 onMouseLeave={() => setHoveredCategory(null)}
@@ -410,8 +293,8 @@ function Navbar() {
               >
                 <div className={`text-[20px] md:text-[22px] transition-colors duration-200 ${
                   isActive 
-                    ? (darkMode ? "text-white" : "text-black") 
-                    : (darkMode ? "text-zinc-500 hover:text-zinc-300" : "text-gray-400 hover:text-black")
+                    ? "text-black" 
+                    : "text-zinc-400 hover:text-black"
                 }`}>
                   {item.icon}
                 </div>
@@ -423,9 +306,7 @@ function Navbar() {
           })}
           {/* THE SINGLE SLIDING UNDERLINE BAR */}
           <div
-            className={`absolute bottom-0 h-[2px] transition-all duration-300 ease-out z-10 ${
-              darkMode ? "bg-white" : "bg-black"
-            }`}
+            className='absolute bottom-0 h-[2px] bg-black transition-all duration-300 ease-out z-10'
             style={{
               left: `${lineStyle.left}px`,
               width: `${lineStyle.width}px`,
@@ -436,14 +317,10 @@ function Navbar() {
       </div>
 
       {/* STICKY BOTTOM NAVIGATION BAR FOR MOBILE */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 py-1.5 pb-2 md:hidden flex justify-around items-center transition-all duration-300 ${
-        darkMode
-          ? "bg-zinc-950/95 border-t border-zinc-900 text-zinc-400 shadow-[0_-4px_16px_rgba(0,0,0,0.6)]"
-          : "bg-white border-t border-gray-100 text-gray-400 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
-      }`}>
+      <div className='fixed bottom-0 left-0 right-0 z-50 py-1.5 pb-2 md:hidden flex justify-around items-center bg-white border-t border-zinc-200 text-zinc-400 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]'>
         <button
           className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
-            location.pathname === "/" ? "text-[#FF385C]" : (darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600")
+            location.pathname === "/" ? "text-[#FF385C]" : "text-zinc-400 hover:text-zinc-600"
           }`}
           onClick={() => navigate("/")}
         >
@@ -452,9 +329,7 @@ function Navbar() {
         </button>
 
         <button
-          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
-            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
-          }`}
+          className='flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors text-zinc-400 hover:text-zinc-600'
           onClick={() => alert("Wishlists coming soon!")}
         >
           <FaRegHeart className='text-[18px]' />
@@ -462,9 +337,7 @@ function Navbar() {
         </button>
 
         <button
-          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
-            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
-          }`}
+          className='flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors text-zinc-400 hover:text-zinc-600'
           onClick={() => navigate("/")}
         >
           <FaAirbnb className='text-[20px]' />
@@ -472,9 +345,7 @@ function Navbar() {
         </button>
 
         <button
-          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
-            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
-          }`}
+          className='flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors text-zinc-400 hover:text-zinc-600'
           onClick={() => alert("Inbox coming soon!")}
         >
           <FaRegCommentDots className='text-[18px]' />
@@ -483,9 +354,7 @@ function Navbar() {
 
         {user ? (
           <button
-            className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
-              darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
-            }`}
+            className='flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors text-zinc-400 hover:text-zinc-600'
             onClick={() => {
               if (window.confirm(`Logged in as ${user.userName}. Would you like to logout?`)) {
                 handleLogout();
@@ -502,7 +371,7 @@ function Navbar() {
             className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
               location.pathname === "/login" || location.pathname === "/signup"
                 ? "text-[#FF385C]"
-                : (darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600")
+                : "text-zinc-400 hover:text-zinc-600"
             }`}
             onClick={() => navigate("/login")}
           >
