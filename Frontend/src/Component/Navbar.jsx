@@ -10,7 +10,14 @@ import {
   FaRegCommentDots
 } from "react-icons/fa";
 
-import { HiMenu } from "react-icons/hi";
+import {
+  HiMenu,
+  HiOutlineHome,
+  HiOutlineViewGrid,
+  HiOutlineCreditCard,
+  HiOutlineSun,
+  HiOutlineMoon
+} from "react-icons/hi";
 
 import {
   MdVilla,
@@ -52,8 +59,37 @@ function Navbar() {
   const [activeCategory, setActiveCategory] = useState(0)
 
   const itemRefs = useRef([])
+  const popupRef = useRef(null)
   const [hoveredCategory, setHoveredCategory] = useState(null)
   const [lineStyle, setLineStyle] = useState({ left: 0, width: 0, opacity: 0 })
+
+  // Theme state
+  const [darkMode, setDarkMode] = useState(() => {
+    return document.documentElement.classList.contains('dark') || 
+           localStorage.getItem('theme') === 'dark';
+  })
+
+  // Synchronize theme
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [darkMode])
+
+  // Handle clicking outside popup
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setShowPopup(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     const updateLine = () => {
@@ -70,9 +106,7 @@ function Navbar() {
       }
     };
 
-    // Delay calculation slightly to ensure nodes are fully rendered
     const timeoutId = setTimeout(updateLine, 50);
-
     window.addEventListener('resize', updateLine);
     return () => {
       clearTimeout(timeoutId);
@@ -97,7 +131,6 @@ function Navbar() {
       navigate("/login")
     } catch (error) {
       console.error("Logout error:", error)
-      // Fallback: clear state anyway if network fails
       setUser(null)
       localStorage.removeItem("user")
       setShowPopup(false)
@@ -144,9 +177,12 @@ function Navbar() {
     }
   ]
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode)
+  }
+
   return (
     <>
-      {/* Scrollbar hide styling */}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -157,141 +193,206 @@ function Navbar() {
         }
       `}</style>
 
-      {/* TOP NAVBAR */}
-      <nav className='w-full bg-white border-b border-gray-150 sticky top-0 z-50 shadow-sm md:shadow-none'>
-        <div className='max-w-[1400px] mx-auto h-[72px] md:h-[80px] px-4 md:px-6 flex items-center justify-between gap-4 relative'>
-
-          {/* LOGO - Hidden on extreme mobile to give search bar space, shown on sm+ */}
+      {/* FLOATING TOP NAVBAR */}
+      <div className="w-full flex justify-center sticky top-0 z-50 px-4 md:px-0">
+        <nav className={`w-full max-w-[1200px] mt-4 rounded-full border transition-all duration-300 backdrop-blur-md px-6 py-2.5 flex items-center justify-between gap-4 ${
+          darkMode 
+            ? "border-zinc-800/80 bg-zinc-950/80 text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]" 
+            : "border-zinc-200/80 bg-white/80 text-zinc-900 shadow-[0_8px_32px_rgba(0,0,0,0.1)]"
+        }`}>
+          
+          {/* LOGO */}
           <div
-            className='hidden sm:flex items-center gap-1.5 cursor-pointer flex-shrink-0'
+            className='flex items-center gap-2 cursor-pointer flex-shrink-0'
             onClick={() => navigate("/")}
           >
-            <FaAirbnb className='text-[34px] text-[#FF385C]' />
-            <h1 className='hidden md:block text-[22px] font-bold text-[#FF385C] tracking-tight'>
+            <FaAirbnb className='text-2xl md:text-3xl text-[#FF385C]' />
+            <h1 className='text-[18px] md:text-20px font-extrabold tracking-tight transition-colors duration-200'>
               airbnb
             </h1>
           </div>
 
-          {/* DESKTOP SEARCH BAR - Centered absolutely on desktop */}
-          <div 
-            className='hidden md:flex absolute left-1/2 -translate-x-1/2 items-center border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all duration-150 py-1.5 pl-5 pr-1.5 bg-white cursor-pointer w-[340px] lg:w-[380px] z-10'
-            onClick={() => navigate("/")}
-          >
-            <span className='text-[13px] lg:text-[14px] font-semibold text-gray-800 pr-3.5 border-r border-gray-180 whitespace-nowrap hover:text-black transition-colors'>
-              Anywhere
-            </span>
-            <span className='text-[13px] lg:text-[14px] font-semibold text-gray-800 px-3.5 border-r border-gray-180 whitespace-nowrap hidden lg:inline-block hover:text-black transition-colors'>
-              Any week
-            </span>
-            <div className='pl-3.5 pr-1 flex items-center justify-between flex-1 gap-2 min-w-0'>
-              <span className='text-[13px] lg:text-[14px] font-semibold text-gray-800 pr-3.5 border-r border-gray-180 whitespace-nowrap hover:text-black transition-colors'>
-                Add guests
-              </span>
-              <div className='w-[32px] h-[32px] rounded-full bg-[#FF385C] flex items-center justify-center text-white transition-all hover:bg-[#E61E4D] flex-shrink-0'>
-                <FaSearch className='text-[11px]' />
-              </div>
-            </div>
+          {/* MIDDLE NAV LINKS - exact same structure as the screenshot */}
+          <div className='hidden md:flex items-center gap-8'>
+            <button
+              onClick={() => navigate("/")}
+              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
+                location.pathname === "/"
+                  ? (darkMode ? "text-white" : "text-zinc-950")
+                  : (darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900")
+              }`}
+            >
+              <HiOutlineHome className='text-lg' />
+              Home
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
+                darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <HiOutlineViewGrid className='text-lg' />
+              Plus Dashboard
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className={`flex items-center gap-2 text-[14px] font-semibold transition-all duration-200 cursor-pointer ${
+                darkMode ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <HiOutlineCreditCard className='text-lg' />
+              Pricing
+            </button>
           </div>
 
-          {/* MOBILE SEARCH BAR - Shown on mobile (< md) */}
-          <div 
-            className='flex md:hidden items-center justify-between border border-gray-200 rounded-full shadow-sm bg-white p-2.5 w-full cursor-pointer hover:shadow-md transition-all'
-            onClick={() => navigate("/")}
-          >
-            <div className='flex items-center gap-3 pl-2'>
-              <FaSearch className='text-gray-800 text-[16px]' />
-              <div className='text-left'>
-                <div className='text-[13px] font-bold text-gray-900'>Where to?</div>
-                <div className='text-[11px] text-gray-500 font-medium'>Anywhere • Any week • Add guests</div>
-              </div>
-            </div>
-            <div className='border border-gray-200 rounded-full p-2 text-gray-700 hover:bg-gray-50 mr-1'>
-              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style={{display: 'block', height: '14px', width: '14px', fill: 'currentColor'}} aria-hidden="true" focusable="false"><path d="M5 8c1.3 0 2.4.8 2.8 2H14v2H7.8c-.4 1.2-1.5 2-2.8 2-1.7 0-3-1.3-3-3s1.3-3 3-3zm0 2c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1zm6-8c1.3 0 2.4.8 2.8 2H14v2h-1.2c-.4 1.2-1.5 2-2.8 2-1.7 0-3-1.3-3-3s1.3-3 3-3zm0 2c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1z"></path></svg>
-            </div>
-          </div>
-
-          {/* DESKTOP RIGHT SIDE - Hidden on mobile (< md) */}
-          <div className='hidden md:flex items-center gap-2 flex-shrink-0 relative'>
+          {/* RIGHT SIDE SECTION */}
+          <div className='flex items-center gap-3.5 flex-shrink-0 relative'>
             <button 
-              className='text-[14px] font-semibold text-gray-800 hover:bg-gray-50 px-4 py-2.5 rounded-full transition duration-200 cursor-pointer'
+              className={`hidden lg:block text-[13px] font-semibold transition duration-200 cursor-pointer mr-1 ${
+                darkMode ? "text-zinc-300 hover:text-white" : "text-zinc-600 hover:text-zinc-900"
+              }`}
               onClick={() => navigate(user ? "/" : "/login")}
             >
               Airbnb your home
             </button>
 
-            <div className='w-[40px] h-[40px] flex items-center justify-center rounded-full hover:bg-gray-50 text-gray-700 cursor-pointer transition duration-200 mr-1'>
-              <FaGlobe className='text-[16px]' />
-            </div>
-
-            {/* HAMBURGER TRIGGER */}
-            <div
-              className='flex items-center gap-3 border border-gray-200 rounded-full px-3.5 py-1.5 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 bg-white'
-              onClick={() => setShowPopup(!showPopup)}
+            {/* THEME TOGGLE */}
+            <button 
+              onClick={toggleDarkMode}
+              className={`w-9 h-9 border rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                darkMode 
+                  ? "border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900/50" 
+                  : "border-zinc-200 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100/50"
+              }`}
+              aria-label="Toggle theme"
             >
-              <HiMenu className='text-[18px] text-gray-700' />
-              {user ? (
-                <div className='w-[30px] h-[30px] rounded-full bg-gray-600 text-white flex items-center justify-center font-bold text-xs capitalize'>
-                  {user.userName ? user.userName.charAt(0) : 'U'}
-                </div>
+              {darkMode ? (
+                <HiOutlineSun className='text-lg' />
               ) : (
-                <FaUserCircle className='text-[30px] text-gray-400' />
+                <HiOutlineMoon className='text-lg' />
+              )}
+            </button>
+
+            {/* HAMBURGER & PROFILE PILL BUTTON */}
+            <div className="relative" ref={popupRef}>
+              <div
+                className={`flex items-center gap-3 border rounded-full px-3.5 py-1.5 shadow-sm cursor-pointer transition-all duration-200 ${
+                  darkMode
+                    ? "border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800/60 hover:text-white"
+                    : "border-zinc-200 bg-zinc-50/50 text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900"
+                }`}
+                onClick={() => setShowPopup(!showPopup)}
+              >
+                <HiMenu className='text-[18px]' />
+                {user ? (
+                  <div className='w-[24px] h-[24px] rounded-full bg-[#FF385C] text-white flex items-center justify-center font-bold text-xs capitalize shadow-sm'>
+                    {user.userName ? user.userName.charAt(0) : 'U'}
+                  </div>
+                ) : (
+                  <FaUserCircle className='text-[24px]' />
+                )}
+              </div>
+
+              {/* POPUP DROPDOWN MENU */}
+              {showPopup && (
+                <div className={`absolute top-[48px] right-0 w-[240px] border backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden z-50 py-2 transition-all duration-200 ${
+                  darkMode
+                    ? "bg-zinc-950/95 border-zinc-800/80 text-zinc-300"
+                    : "bg-white/95 border-zinc-200/80 text-zinc-700"
+                }`}>
+                  <ul className='flex flex-col text-[14px]'>
+                    {user ? (
+                      <>
+                        <li className={`px-4 py-3 font-semibold border-b ${
+                          darkMode ? "border-zinc-900 bg-zinc-900/10 text-white" : "border-gray-100 bg-gray-50/50 text-zinc-900"
+                        }`}>
+                          Hello, {user.userName}!
+                        </li>
+                        <li className={`px-4 py-2.5 cursor-pointer font-medium ${
+                          darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                        }`} onClick={() => setShowPopup(false)}>
+                          My Listings
+                        </li>
+                        <li className={`px-4 py-2.5 cursor-pointer font-medium border-b ${
+                          darkMode ? "border-zinc-900 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
+                        }`} onClick={() => setShowPopup(false)}>
+                          Check Bookings
+                        </li>
+                        <li className={`px-4 py-2.5 cursor-pointer font-medium ${
+                          darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                        }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
+                          List your Home
+                        </li>
+                        <li className={`px-4 py-2.5 cursor-pointer font-medium text-red-500 transition-colors ${
+                          darkMode ? "hover:bg-zinc-900 hover:text-red-400" : "hover:bg-gray-50 hover:text-red-600"
+                        }`} onClick={handleLogout}>
+                          Logout
+                        </li>
+                      </>
+                    ) : (
+                      <>
+                        <li
+                          className={`px-4 py-2.5 cursor-pointer font-semibold border-b ${
+                            darkMode ? "border-zinc-900/50 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
+                          }`}
+                          onClick={() => { setShowPopup(false); navigate("/login"); }}
+                        >
+                          Login
+                        </li>
+                        <li
+                          className={`px-4 py-2.5 cursor-pointer font-medium border-b ${
+                            darkMode ? "border-zinc-900/50 hover:bg-zinc-900 hover:text-white" : "border-gray-100 hover:bg-gray-50 hover:text-zinc-900"
+                          }`}
+                          onClick={() => { setShowPopup(false); navigate("/signup"); }}
+                        >
+                          Signup
+                        </li>
+                        <li
+                          className={`px-4 py-2.5 cursor-pointer font-medium ${
+                            darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                          }`}
+                          onClick={() => { setShowPopup(false); navigate("/login"); }}
+                        >
+                          List your Home
+                        </li>
+                      </>
+                    )}
+                    {/* MOBILE LINKS IN HAMBURGER */}
+                    <div className={`md:hidden border-t mt-1 pt-1 ${darkMode ? "border-zinc-900/80" : "border-gray-100"}`}>
+                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
+                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
+                        <HiOutlineHome className="text-lg" />
+                        Home
+                      </li>
+                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
+                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
+                        <HiOutlineViewGrid className="text-lg" />
+                        Plus Dashboard
+                      </li>
+                      <li className={`px-4 py-2.5 cursor-pointer font-medium flex items-center gap-2.5 ${
+                        darkMode ? "hover:bg-zinc-900 hover:text-white" : "hover:bg-gray-50 hover:text-zinc-900"
+                      }`} onClick={() => { setShowPopup(false); navigate("/"); }}>
+                        <HiOutlineCreditCard className="text-lg" />
+                        Pricing
+                      </li>
+                    </div>
+                  </ul>
+                </div>
               )}
             </div>
-
-            {/* POPUP MENU */}
-            {showPopup && (
-              <div className='absolute top-[52px] right-0 w-[240px] bg-white border border-gray-150 rounded-xl shadow-xl overflow-hidden z-50 py-2'>
-                <ul className='flex flex-col text-[14px] text-gray-800'>
-                  {user ? (
-                    <>
-                      <li className='px-4 py-3 font-semibold border-b border-gray-100 bg-gray-50/50 text-gray-900'>
-                        Hello, {user.userName}!
-                      </li>
-                      <li className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium' onClick={() => setShowPopup(false)}>
-                        My Listings
-                      </li>
-                      <li className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium border-b border-gray-100' onClick={() => setShowPopup(false)}>
-                        Check Bookings
-                      </li>
-                      <li className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium' onClick={() => { setShowPopup(false); navigate("/"); }}>
-                        List your Home
-                      </li>
-                      <li className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium text-red-500 hover:text-red-600' onClick={handleLogout}>
-                        Logout
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li
-                        className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-semibold'
-                        onClick={() => { setShowPopup(false); navigate("/login"); }}
-                      >
-                        Login
-                      </li>
-                      <li
-                        className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium border-b border-gray-100'
-                        onClick={() => { setShowPopup(false); navigate("/signup"); }}
-                      >
-                        Signup
-                      </li>
-                      <li
-                        className='px-4 py-2.5 hover:bg-gray-50 cursor-pointer font-medium'
-                        onClick={() => { setShowPopup(false); navigate("/login"); }}
-                      >
-                        List your Home
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            )}
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* CATEGORIES / SCROLLABLE BAR */}
-      <div className='w-full bg-white border-b border-gray-100 overflow-x-auto scrollbar-hide sticky top-[72px] md:top-[80px] z-40 shadow-sm md:shadow-none'>
-        <div className='relative max-w-[1400px] mx-auto flex items-center justify-start md:justify-center gap-6 md:gap-8 px-4 md:px-6 py-3 w-full'>
+      <div className={`w-full overflow-x-auto scrollbar-hide sticky top-24 z-40 transition-all duration-300 py-3 ${
+        darkMode
+          ? "bg-zinc-950/80 border-b border-zinc-900/60 backdrop-blur-md"
+          : "bg-white/80 border-b border-gray-100/80 backdrop-blur-md"
+      }`}>
+        <div className='relative max-w-[1400px] mx-auto flex items-center justify-start md:justify-center gap-6 md:gap-8 px-4 md:px-6 w-full'>
           {categories.map((item, index) => {
             const isActive = activeCategory === index;
             return (
@@ -300,14 +401,18 @@ function Navbar() {
                 ref={el => itemRefs.current[index] = el}
                 className={`flex flex-col items-center justify-center gap-1.5 cursor-pointer min-w-fit transition-all duration-200 pb-2 pt-1 ${
                   isActive
-                    ? "text-black font-semibold"
-                    : "text-gray-500 hover:text-black"
+                    ? (darkMode ? "text-white font-semibold" : "text-black font-semibold")
+                    : (darkMode ? "text-zinc-500 hover:text-white" : "text-gray-500 hover:text-black")
                 }`}
                 onMouseEnter={() => setHoveredCategory(index)}
                 onMouseLeave={() => setHoveredCategory(null)}
                 onClick={() => setActiveCategory(index)}
               >
-                <div className={`text-[20px] md:text-[22px] ${isActive ? "text-black" : "text-gray-500 group-hover:text-black"}`}>
+                <div className={`text-[20px] md:text-[22px] transition-colors duration-200 ${
+                  isActive 
+                    ? (darkMode ? "text-white" : "text-black") 
+                    : (darkMode ? "text-zinc-500 hover:text-zinc-300" : "text-gray-400 hover:text-black")
+                }`}>
                   {item.icon}
                 </div>
                 <p className='text-[11px] md:text-[12px] tracking-tight whitespace-nowrap'>
@@ -318,7 +423,9 @@ function Navbar() {
           })}
           {/* THE SINGLE SLIDING UNDERLINE BAR */}
           <div
-            className='absolute bottom-0 h-[2px] bg-black transition-all duration-300 ease-out z-10'
+            className={`absolute bottom-0 h-[2px] transition-all duration-300 ease-out z-10 ${
+              darkMode ? "bg-white" : "bg-black"
+            }`}
             style={{
               left: `${lineStyle.left}px`,
               width: `${lineStyle.width}px`,
@@ -329,10 +436,14 @@ function Navbar() {
       </div>
 
       {/* STICKY BOTTOM NAVIGATION BAR FOR MOBILE */}
-      <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 py-1.5 pb-2 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex justify-around items-center'>
+      <div className={`fixed bottom-0 left-0 right-0 z-50 py-1.5 pb-2 md:hidden flex justify-around items-center transition-all duration-300 ${
+        darkMode
+          ? "bg-zinc-950/95 border-t border-zinc-900 text-zinc-400 shadow-[0_-4px_16px_rgba(0,0,0,0.6)]"
+          : "bg-white border-t border-gray-100 text-gray-400 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+      }`}>
         <button
-          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer ${
-            location.pathname === "/" ? "text-[#FF385C]" : "text-gray-400 hover:text-gray-600"
+          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
+            location.pathname === "/" ? "text-[#FF385C]" : (darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600")
           }`}
           onClick={() => navigate("/")}
         >
@@ -341,7 +452,9 @@ function Navbar() {
         </button>
 
         <button
-          className='flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-gray-600 bg-transparent border-none outline-none cursor-pointer'
+          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
+            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
+          }`}
           onClick={() => alert("Wishlists coming soon!")}
         >
           <FaRegHeart className='text-[18px]' />
@@ -349,7 +462,9 @@ function Navbar() {
         </button>
 
         <button
-          className='flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-gray-600 bg-transparent border-none outline-none cursor-pointer'
+          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
+            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
+          }`}
           onClick={() => navigate("/")}
         >
           <FaAirbnb className='text-[20px]' />
@@ -357,7 +472,9 @@ function Navbar() {
         </button>
 
         <button
-          className='flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-gray-600 bg-transparent border-none outline-none cursor-pointer'
+          className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
+            darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
+          }`}
           onClick={() => alert("Inbox coming soon!")}
         >
           <FaRegCommentDots className='text-[18px]' />
@@ -366,24 +483,26 @@ function Navbar() {
 
         {user ? (
           <button
-            className='flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:text-gray-600 bg-transparent border-none outline-none cursor-pointer'
+            className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
+              darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
+            }`}
             onClick={() => {
               if (window.confirm(`Logged in as ${user.userName}. Would you like to logout?`)) {
                 handleLogout();
               }
             }}
           >
-            <div className='w-[20px] h-[20px] rounded-full bg-gray-600 text-white flex items-center justify-center font-bold text-[9px] capitalize'>
+            <div className='w-[20px] h-[20px] rounded-full bg-[#FF385C] text-white flex items-center justify-center font-bold text-[9px] capitalize shadow-sm'>
               {user.userName ? user.userName.charAt(0) : 'U'}
             </div>
             <span className='text-[10px] font-medium truncate max-w-[60px]'>Profile</span>
           </button>
         ) : (
           <button
-            className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer ${
+            className={`flex flex-col items-center justify-center gap-0.5 bg-transparent border-none outline-none cursor-pointer transition-colors ${
               location.pathname === "/login" || location.pathname === "/signup"
                 ? "text-[#FF385C]"
-                : "text-gray-400 hover:text-gray-600"
+                : (darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600")
             }`}
             onClick={() => navigate("/login")}
           >
